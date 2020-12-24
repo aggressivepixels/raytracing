@@ -1,3 +1,4 @@
+use super::material::*;
 use super::ray::*;
 use super::vec3::*;
 
@@ -6,18 +7,27 @@ pub struct Hit {
     pub point: Vec3,
     pub normal: Vec3,
     pub front_face: bool,
+    pub material: Material,
     pub t: f64,
 }
 
 #[derive(Clone, Copy)]
 pub enum Object {
-    Sphere { center: Vec3, radius: f64 },
+    Sphere {
+        center: Vec3,
+        radius: f64,
+        material: Material,
+    },
 }
 
 impl Object {
     pub fn hit(self, ray: &Ray, t_min: f64, t_max: f64) -> Option<Hit> {
         match self {
-            Object::Sphere { center, radius } => {
+            Object::Sphere {
+                center,
+                radius,
+                material,
+            } => {
                 let oc = ray.origin - center;
                 let a = ray.direction.squared_length();
                 let half_b = oc.dot(ray.direction);
@@ -50,6 +60,7 @@ impl Object {
                         -outward_normal
                     },
                     front_face,
+                    material,
                     t: root,
                 })
             }

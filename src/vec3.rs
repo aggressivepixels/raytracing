@@ -44,6 +44,14 @@ impl ops::Mul<Vec3> for f64 {
     }
 }
 
+impl ops::Mul for Vec3 {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self {
+        Vec3(self.0 * rhs.0, self.1 * rhs.1, self.2 * rhs.2)
+    }
+}
+
 impl ops::Div<f64> for Vec3 {
     type Output = Self;
 
@@ -75,6 +83,15 @@ impl Vec3 {
 
     pub fn dot(self, other: Self) -> f64 {
         self.0 * other.0 + self.1 * other.1 + self.2 * other.2
+    }
+
+    pub fn is_near_zero(self) -> bool {
+        const DELTA: f64 = 0.00000001;
+        return self.0.abs() < DELTA && self.1.abs() < DELTA && self.2.abs() < DELTA;
+    }
+
+    pub fn reflect(self, n: Self) -> Self {
+        self - 2.0 * self.dot(n) * n
     }
 
     pub fn random() -> Self {

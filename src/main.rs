@@ -1,6 +1,7 @@
 mod camera;
 mod color;
 mod constants;
+mod material;
 mod object;
 mod ray;
 mod vec3;
@@ -8,6 +9,7 @@ mod vec3;
 use camera::*;
 use color::*;
 use constants::*;
+use material::*;
 use object::*;
 use rand::prelude::*;
 use ray::*;
@@ -17,12 +19,24 @@ fn main() {
     let camera = Camera::new(ASPECT_RATIO);
     let world = World(vec![
         Object::Sphere {
-            center: Vec3(0.0, 0.0, -1.0),
-            radius: 0.5,
-        },
-        Object::Sphere {
             center: Vec3(0.0, -100.5, -1.0),
             radius: 100.0,
+            material: Material::Lambertian(Color(Vec3(0.8, 0.8, 0.0))),
+        },
+        Object::Sphere {
+            center: Vec3(0.0, 0.0, -1.0),
+            radius: 0.5,
+            material: Material::Lambertian(Color(Vec3(0.7, 0.3, 0.3))),
+        },
+        Object::Sphere {
+            center: Vec3(-1.0, 0.0, -1.0),
+            radius: 0.5,
+            material: Material::Metal(Color(Vec3(0.8, 0.8, 0.8))),
+        },
+        Object::Sphere {
+            center: Vec3(1.0, 0.0, -1.0),
+            radius: 0.5,
+            material: Material::Metal(Color(Vec3(0.8, 0.6, 0.2))),
         },
     ]);
 
@@ -56,17 +70,11 @@ fn ray_color(ray: &Ray, world: &World, depth: i32) -> Color {
     }
 
     if let Some(hit) = world.hit(ray, 0.001, f64::INFINITY) {
-        let target = hit.point + hit.normal + Vec3::random_in_unit_sphere().normalize();
+        if let Some((attenuation, scattered)) = hit.material.scatter(ray, &hit) {
+            return attenuation * ray_color(&scattered, world, depth - 1);
+        }
 
-        return 0.5
-            * ray_color(
-                &Ray {
-                    origin: hit.point,
-                    direction: target - hit.point,
-                },
-                world,
-                depth - 1,
-            );
+        return Color(Vec3(0.0, 0.0, 0.0));
     }
 
     let direction = ray.direction.normalize();
