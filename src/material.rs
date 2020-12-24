@@ -2,11 +2,13 @@ use super::color::*;
 use super::object::*;
 use super::ray::*;
 use super::vec3::*;
+use rand::prelude::*;
 
 #[derive(Copy, Clone)]
 pub enum Material {
     Lambertian(Color),
     Metal(Color, f64),
+    Dielectric(f64),
 }
 
 impl Material {
@@ -44,6 +46,36 @@ impl Material {
                     None
                 }
             }
+
+            Material::Dielectric(ir) => {
+                let refraction_ratio = if hit.front_face { 1.0 / ir } else { ir };
+                let unit_direction = ray.direction.normalize();
+                let cos_theta = f64::min(Vec3::dot(-unit_direction, hit.normal), 1.0);
+                let sin_theta = f64::sqrt(1.0 - cos_theta * cos_theta);
+
+                let cannot_refract = refraction_ratio * sin_theta > 1.0;
+
+                let direction = if cannot_refract
+                    || reflectance(cos_theta, refraction_ratio) > random::<f64>()
+                {
+                    unit_direction.reflect(hit.normal)
+                } else {
+                    unit_direction.refract(hit.normal, refraction_ratio)
+                };
+
+                Some((
+                    Color(Vec3(1.0, 1.0, 1.0)),
+                    Ray {
+                        origin: hit.point,
+                        direction,
+                    },
+                ))
+            }
         }
     }
+}
+
+fn reflectance(cos: f64, ref_idx: f64) -> f64 {
+    let r = f64::powi((1.0 - ref_idx) / (1.0 + ref_idx), 2);
+    return r + (1.0 - r) * f64::powi(1.0 - cos, 5);
 }

@@ -26,12 +26,12 @@ fn main() {
         Object::Sphere {
             center: Vec3(0.0, 0.0, -1.0),
             radius: 0.5,
-            material: Material::Lambertian(Color(Vec3(0.7, 0.3, 0.3))),
+            material: Material::Lambertian(Color(Vec3(0.1, 0.2, 0.5))),
         },
         Object::Sphere {
             center: Vec3(-1.0, 0.0, -1.0),
             radius: 0.5,
-            material: Material::Metal(Color(Vec3(0.8, 0.8, 0.8)), 0.3),
+            material: Material::Dielectric(1.5),
         },
         Object::Sphere {
             center: Vec3(1.0, 0.0, -1.0),
