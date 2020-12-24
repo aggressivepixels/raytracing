@@ -34,6 +34,11 @@ fn main() {
             material: Material::Dielectric(1.5),
         },
         Object::Sphere {
+            center: Vec3(-1.0, 0.0, -1.0),
+            radius: -0.4,
+            material: Material::Dielectric(1.5),
+        },
+        Object::Sphere {
             center: Vec3(1.0, 0.0, -1.0),
             radius: 0.5,
             material: Material::Metal(Color(Vec3(0.8, 0.6, 0.2)), 0.1),
