@@ -16,45 +16,19 @@ use ray::*;
 use vec3::*;
 
 fn main() {
-    let look_from = Vec3(3.0, 3.0, 2.0);
-    let look_at = Vec3(0.0, 0.0, -1.0);
+    let look_from = Vec3(13.0, 2.0, 3.0);
+    let look_at = Vec3(0.0, 0.0, 0.0);
     let camera = Camera::new(
-        Vec3(3.0, 3.0, 2.0),
-        Vec3(0.0, 0.0, -1.0),
+        look_from,
+        look_at,
         Vec3(0.0, 1.0, 0.0),
         20.0,
         ASPECT_RATIO,
-        2.0,
-        Vec3::length(look_from - look_at),
+        0.1,
+        10.0,
     );
 
-    let world = World(vec![
-        Object::Sphere {
-            center: Vec3(0.0, -100.5, -1.0),
-            radius: 100.0,
-            material: Material::Lambertian(Color(Vec3(0.8, 0.8, 0.0))),
-        },
-        Object::Sphere {
-            center: Vec3(0.0, 0.0, -1.0),
-            radius: 0.5,
-            material: Material::Lambertian(Color(Vec3(0.1, 0.2, 0.5))),
-        },
-        Object::Sphere {
-            center: Vec3(-1.0, 0.0, -1.0),
-            radius: 0.5,
-            material: Material::Dielectric(1.5),
-        },
-        Object::Sphere {
-            center: Vec3(-1.0, 0.0, -1.0),
-            radius: -0.45,
-            material: Material::Dielectric(1.5),
-        },
-        Object::Sphere {
-            center: Vec3(1.0, 0.0, -1.0),
-            radius: 0.5,
-            material: Material::Metal(Color(Vec3(0.8, 0.6, 0.2)), 0.0),
-        },
-    ]);
+    let world = random_world();
 
     println!("P3");
     println!("{} {}", IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -97,4 +71,76 @@ fn ray_color(ray: &Ray, world: &World, depth: i32) -> Color {
     let t = 0.5 * (direction.1 + 1.0);
 
     Color((1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0))
+}
+
+fn random_world() -> World {
+    let mut rng = rand::thread_rng();
+    let mut objects = vec![];
+
+    objects.push(Object::Sphere {
+        center: Vec3(0.0, -1000.0, 0.0),
+        radius: 1000.0,
+        material: Material::Lambertian(Color(Vec3(0.5, 0.5, 0.5))),
+    });
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat = random::<f64>();
+            let center = Vec3(
+                a as f64 + 0.9 * random::<f64>(),
+                0.2,
+                b as f64 + 0.9 * random::<f64>(),
+            );
+
+            if Vec3::length(center - Vec3(4.0, 0.2, 0.0)) > 0.9 {
+                if choose_mat < 0.8 {
+                    // diffuse
+                    let albedo = Color(
+                        Vec3(random::<f64>(), random::<f64>(), random::<f64>())
+                            * Vec3(random::<f64>(), random::<f64>(), random::<f64>()),
+                    );
+                    objects.push(Object::Sphere {
+                        center,
+                        radius: 0.2,
+                        material: Material::Lambertian(albedo),
+                    });
+                } else if choose_mat < 0.95 {
+                    // metal
+                    let albedo = Color(Vec3::random_in_range(0.5, 1.0));
+                    let fuzz = rng.gen_range(0.0..0.5);
+                    objects.push(Object::Sphere {
+                        center,
+                        radius: 0.2,
+                        material: Material::Metal(albedo, fuzz),
+                    });
+                } else {
+                    objects.push(Object::Sphere {
+                        center,
+                        radius: 0.2,
+                        material: Material::Dielectric(1.5),
+                    });
+                }
+            }
+        }
+    }
+
+    objects.push(Object::Sphere {
+        center: Vec3(0.0, 1.0, 0.0),
+        radius: 1.0,
+        material: Material::Dielectric(1.5),
+    });
+
+    objects.push(Object::Sphere {
+        center: Vec3(-4.0, 1.0, 0.0),
+        radius: 1.0,
+        material: Material::Lambertian(Color(Vec3(0.4, 0.2, 0.1))),
+    });
+
+    objects.push(Object::Sphere {
+        center: Vec3(4.0, 1.0, 0.0),
+        radius: 1.0,
+        material: Material::Metal(Color(Vec3(0.7, 0.6, 0.5)), 0.0),
+    });
+
+    World(objects)
 }
