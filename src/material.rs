@@ -6,7 +6,7 @@ use super::vec3::*;
 #[derive(Copy, Clone)]
 pub enum Material {
     Lambertian(Color),
-    Metal(Color),
+    Metal(Color, f64),
 }
 
 impl Material {
@@ -28,8 +28,9 @@ impl Material {
                 ))
             }
 
-            Material::Metal(albedo) => {
-                let reflected = ray.direction.normalize().reflect(hit.normal);
+            Material::Metal(albedo, fuzz) => {
+                let reflected = ray.direction.normalize().reflect(hit.normal)
+                    + fuzz * Vec3::random_in_unit_sphere();
 
                 if reflected.dot(hit.normal) > 0.0 {
                     Some((
