@@ -6,8 +6,24 @@ use std::{fmt, ops};
 pub struct Color(pub Vec3);
 
 impl ops::AddAssign for Color {
-    fn add_assign(&mut self, other: Color) {
-        self.0 += other.0;
+    fn add_assign(&mut self, rhs: Color) {
+        self.0 += rhs.0;
+    }
+}
+
+impl ops::Mul<f64> for Color {
+    type Output = Self;
+
+    fn mul(self, rhs: f64) -> Self {
+        Color(self.0 * rhs)
+    }
+}
+
+impl ops::Mul<Color> for f64 {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Color {
+        Color(self * rhs.0)
     }
 }
 

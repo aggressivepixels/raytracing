@@ -1,3 +1,4 @@
+use rand::prelude::*;
 use std::ops;
 
 #[derive(Copy, Clone)]
@@ -74,5 +75,28 @@ impl Vec3 {
 
     pub fn dot(self, other: Self) -> f64 {
         self.0 * other.0 + self.1 * other.1 + self.2 * other.2
+    }
+
+    pub fn random() -> Self {
+        Vec3(random(), random(), random())
+    }
+
+    pub fn random_in_range(from: f64, to: f64) -> Self {
+        let mut rng = rand::thread_rng();
+
+        Vec3(
+            rng.gen_range(from..to),
+            rng.gen_range(from..to),
+            rng.gen_range(from..to),
+        )
+    }
+
+    pub fn random_in_unit_sphere() -> Vec3 {
+        loop {
+            let v = Self::random_in_range(-1.0, 1.0);
+            if v.squared_length() < 1.0 {
+                return v;
+            }
+        }
     }
 }
