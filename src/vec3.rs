@@ -44,19 +44,19 @@ impl ops::Div<f64> for Vec3 {
 }
 
 impl Vec3 {
-    pub fn normalize(&self) -> Self {
-        *self / self.length()
+    pub fn normalize(self) -> Self {
+        self / self.length()
     }
 
-    pub fn length(&self) -> f64 {
+    pub fn length(self) -> f64 {
         self.squared_length().sqrt()
     }
 
-    pub fn squared_length(&self) -> f64 {
+    pub fn squared_length(self) -> f64 {
         self.0.powi(2) + self.1.powi(2) + self.2.powi(2)
     }
 
-    pub fn dot(&self, other: Self) -> f64 {
+    pub fn dot(self, other: Self) -> f64 {
         self.0 * other.0 + self.1 * other.1 + self.2 * other.2
     }
 }
