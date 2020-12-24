@@ -9,8 +9,10 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64) -> Self {
-        let viewport_height = 2.0;
+    pub fn new(vertical_fov: f64, aspect_ratio: f64) -> Self {
+        let theta = vertical_fov.to_radians();
+        let h = f64::tan(theta / 2.0);
+        let viewport_height = 2.0 * h;
         let viewport_width = aspect_ratio * viewport_height;
         let focal_length = 1.0;
         let origin = Vec3(0.0, 0.0, 0.0);

@@ -16,32 +16,18 @@ use ray::*;
 use vec3::*;
 
 fn main() {
-    let camera = Camera::new(ASPECT_RATIO);
+    let r = f64::cos(std::f64::consts::PI / 4.0);
+    let camera = Camera::new(90.0, ASPECT_RATIO);
     let world = World(vec![
         Object::Sphere {
-            center: Vec3(0.0, -100.5, -1.0),
-            radius: 100.0,
-            material: Material::Lambertian(Color(Vec3(0.8, 0.8, 0.0))),
+            center: Vec3(-r, 0.0, -1.0),
+            radius: r,
+            material: Material::Lambertian(Color(Vec3(0.0, 0.0, 1.0))),
         },
         Object::Sphere {
-            center: Vec3(0.0, 0.0, -1.0),
-            radius: 0.5,
-            material: Material::Lambertian(Color(Vec3(0.1, 0.2, 0.5))),
-        },
-        Object::Sphere {
-            center: Vec3(-1.0, 0.0, -1.0),
-            radius: 0.5,
-            material: Material::Dielectric(1.5),
-        },
-        Object::Sphere {
-            center: Vec3(-1.0, 0.0, -1.0),
-            radius: -0.4,
-            material: Material::Dielectric(1.5),
-        },
-        Object::Sphere {
-            center: Vec3(1.0, 0.0, -1.0),
-            radius: 0.5,
-            material: Material::Metal(Color(Vec3(0.8, 0.6, 0.2)), 0.1),
+            center: Vec3(r, 0.0, -1.0),
+            radius: r,
+            material: Material::Lambertian(Color(Vec3(1.0, 0.0, 0.0))),
         },
     ]);
 
