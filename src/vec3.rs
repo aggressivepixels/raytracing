@@ -124,4 +124,12 @@ impl Vec3 {
 
         r_out_perp + r_out_parallel
     }
+
+    pub fn cross(self, other: Self) -> Self {
+        Vec3(
+            self.1 * other.2 - self.2 * other.1,
+            self.2 * other.0 - self.0 * other.2,
+            self.0 * other.1 - self.1 * other.0,
+        )
+    }
 }
