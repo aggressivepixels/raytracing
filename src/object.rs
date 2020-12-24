@@ -15,7 +15,7 @@ pub enum Object {
 }
 
 impl Object {
-    pub fn hit(self, ray: &Ray, t_min: f64, t_max: f64, hit: Hit) -> (bool, Hit) {
+    pub fn hit(self, ray: &Ray, t_min: f64, t_max: f64) -> Option<Hit> {
         match self {
             Object::Sphere { center, radius } => {
                 let oc = ray.origin - center;
@@ -25,7 +25,7 @@ impl Object {
                 let discriminant = half_b.powi(2) - (a * c);
 
                 if discriminant < 0.0 {
-                    return (false, hit);
+                    return None;
                 }
 
                 let sqrtd = discriminant.sqrt();
@@ -34,7 +34,7 @@ impl Object {
                 if root < t_min || t_max < root {
                     root = (-half_b + sqrtd) / a;
                     if root < t_min || t_max < root {
-                        return (false, hit);
+                        return None;
                     }
                 }
 
@@ -42,19 +42,16 @@ impl Object {
                 let outward_normal = (point - center) / radius;
                 let front_face = ray.direction.dot(outward_normal) < 0.0;
 
-                (
-                    true,
-                    Hit {
-                        point,
-                        normal: if front_face {
-                            outward_normal
-                        } else {
-                            -outward_normal
-                        },
-                        front_face,
-                        t: root,
+                Some(Hit {
+                    point,
+                    normal: if front_face {
+                        outward_normal
+                    } else {
+                        -outward_normal
                     },
-                )
+                    front_face,
+                    t: root,
+                })
             }
         }
     }
@@ -63,25 +60,17 @@ impl Object {
 pub struct World(pub Vec<Object>);
 
 impl World {
-    pub fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> (bool, Hit) {
-        let mut hit_anything = false;
+    pub fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<Hit> {
         let mut closest_so_far = t_max;
-        let mut hit = Hit {
-            point: Vec3(0.0, 0.0, 0.0),
-            normal: Vec3(0.0, 0.0, 0.0),
-            front_face: false,
-            t: 0.0,
-        };
+        let mut hit: Option<Hit> = None;
 
         for obj in &self.0 {
-            let (did_hit, new_hit) = obj.hit(ray, t_min, closest_so_far, hit);
-            if did_hit {
-                hit_anything = true;
+            if let Some(new_hit) = obj.hit(ray, t_min, closest_so_far) {
                 closest_so_far = new_hit.t;
-                hit = new_hit;
+                hit = Some(new_hit);
             }
         }
 
-        (hit_anything, hit)
+        hit
     }
 }

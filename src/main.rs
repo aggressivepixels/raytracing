@@ -58,8 +58,7 @@ fn main() {
 }
 
 fn ray_color(ray: &Ray, world: &World) -> Color {
-    let (did_hit, hit) = world.hit(ray, 0.001, f64::INFINITY);
-    if did_hit {
+    if let Some(hit) = world.hit(ray, 0.001, f64::INFINITY) {
         return Color(0.5 * (hit.normal + Vec3(1.0, 1.0, 1.0)));
     }
 
@@ -67,18 +66,4 @@ fn ray_color(ray: &Ray, world: &World) -> Color {
     let t = 0.5 * (direction.1 + 1.0);
 
     Color((1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0))
-}
-
-fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray) -> f64 {
-    let oc = ray.origin - *center;
-    let a = ray.direction.squared_length();
-    let half_b = oc.dot(ray.direction);
-    let c = oc.squared_length() - radius.powi(2);
-    let discriminant = half_b.powi(2) - (a * c);
-
-    if discriminant < 0.0 {
-        -1.0
-    } else {
-        (-half_b - discriminant.sqrt()) / a
-    }
 }
