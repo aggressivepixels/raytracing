@@ -16,12 +16,16 @@ use ray::*;
 use vec3::*;
 
 fn main() {
+    let look_from = Vec3(3.0, 3.0, 2.0);
+    let look_at = Vec3(0.0, 0.0, -1.0);
     let camera = Camera::new(
-        Vec3(-2.0, 2.0, 1.0),
+        Vec3(3.0, 3.0, 2.0),
         Vec3(0.0, 0.0, -1.0),
         Vec3(0.0, 1.0, 0.0),
         20.0,
         ASPECT_RATIO,
+        2.0,
+        Vec3::length(look_from - look_at),
     );
 
     let world = World(vec![
