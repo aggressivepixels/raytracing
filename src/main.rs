@@ -40,7 +40,7 @@ fn main() {
                 let v = (j as f64 + random::<f64>()) / (IMAGE_HEIGHT as f64 - 1.0);
                 let ray = camera.get_ray(u, v);
 
-                color += ray_color(&ray, &world, MAX_DEPTH)
+                color += ray_color(&ray, &world, MAX_DEPTH);
             }
 
             println!("{}", color);
@@ -56,7 +56,7 @@ fn ray_color(ray: &Ray, world: &World, depth: i32) -> Color {
     }
 
     if let Some(hit) = world.hit(ray, 0.001, f64::INFINITY) {
-        let target = hit.point + hit.normal + Vec3::random_in_unit_sphere();
+        let target = hit.point + hit.normal + Vec3::random_in_unit_sphere().normalize();
 
         return 0.5
             * ray_color(
