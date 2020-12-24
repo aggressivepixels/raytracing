@@ -43,6 +43,14 @@ impl ops::Div<f64> for Vec3 {
     }
 }
 
+impl ops::Neg for Vec3 {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        Vec3(-self.0, -self.1, -self.2)
+    }
+}
+
 impl Vec3 {
     pub fn normalize(self) -> Self {
         self / self.length()

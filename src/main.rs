@@ -1,8 +1,10 @@
 mod color;
+mod object;
 mod ray;
 mod vec3;
 
 use color::*;
+use object::*;
 use ray::*;
 use vec3::*;
 
@@ -22,6 +24,17 @@ fn main() {
 
     let lower_left = ORIGIN - (HORIZONTAL / 2.0) - (VERTICAL / 2.0) - Vec3(0.0, 0.0, FOCAL_LENGTH);
 
+    let world = World(vec![
+        Object::Sphere {
+            center: Vec3(0.0, 0.0, -1.0),
+            radius: 0.5,
+        },
+        Object::Sphere {
+            center: Vec3(0.0, -100.5, -1.0),
+            radius: 100.0,
+        },
+    ]);
+
     println!("P3");
     println!("{} {}", IMAGE_WIDTH, IMAGE_HEIGHT);
     println!("255");
@@ -37,18 +50,17 @@ fn main() {
                 direction: lower_left + (u * HORIZONTAL) + (v * VERTICAL) - ORIGIN,
             };
 
-            println!("{}", ray_color(&ray));
+            println!("{}", ray_color(&ray, &world));
         }
     }
 
     eprintln!("Done.");
 }
 
-fn ray_color(ray: &Ray) -> Color {
-    let t = hit_sphere(&Vec3(0.0, 0.0, -1.0), 0.5, ray);
-    if t > 0.0 {
-        let n = Vec3::normalize(ray.at(t) - Vec3(0.0, 0.0, -1.0));
-        return Color(0.5 * Vec3(n.0 + 1.0, n.1 + 1.0, n.2 + 1.0));
+fn ray_color(ray: &Ray, world: &World) -> Color {
+    let (did_hit, hit) = world.hit(ray, 0.001, f64::INFINITY);
+    if did_hit {
+        return Color(0.5 * (hit.normal + Vec3(1.0, 1.0, 1.0)));
     }
 
     let direction = ray.direction.normalize();
