@@ -7,7 +7,7 @@ impl ops::Add for Vec3 {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
-        Vec3(self.0 + rhs.1, self.1 + rhs.1, self.2 + rhs.2)
+        Vec3(self.0 + rhs.0, self.1 + rhs.1, self.2 + rhs.2)
     }
 }
 
@@ -15,7 +15,7 @@ impl ops::Sub for Vec3 {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self {
-        Vec3(self.0 - rhs.1, self.1 - rhs.1, self.2 - rhs.2)
+        Vec3(self.0 - rhs.0, self.1 - rhs.1, self.2 - rhs.2)
     }
 }
 
@@ -54,5 +54,9 @@ impl Vec3 {
 
     pub fn squared_length(&self) -> f64 {
         self.0.powi(2) + self.1.powi(2) + self.2.powi(2)
+    }
+
+    pub fn dot(&self, other: Self) -> f64 {
+        self.0 * other.0 + self.1 * other.1 + self.2 * other.2
     }
 }
