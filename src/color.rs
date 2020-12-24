@@ -29,9 +29,9 @@ impl ops::Mul<Color> for f64 {
 
 impl fmt::Display for Color {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let r = self.0 .0 * (1.0 / SAMPLES_PER_PIXEL as f64);
-        let g = self.0 .1 * (1.0 / SAMPLES_PER_PIXEL as f64);
-        let b = self.0 .2 * (1.0 / SAMPLES_PER_PIXEL as f64);
+        let r = f64::sqrt(self.0 .0 * (1.0 / SAMPLES_PER_PIXEL as f64));
+        let g = f64::sqrt(self.0 .1 * (1.0 / SAMPLES_PER_PIXEL as f64));
+        let b = f64::sqrt(self.0 .2 * (1.0 / SAMPLES_PER_PIXEL as f64));
 
         write!(
             f,
