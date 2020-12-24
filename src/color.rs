@@ -1,6 +1,7 @@
 use super::vec3::*;
 use std::fmt;
 
+#[derive(Copy, Clone)]
 pub struct Color(pub Vec3);
 
 impl fmt::Display for Color {
