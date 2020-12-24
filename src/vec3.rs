@@ -3,6 +3,14 @@ use std::ops;
 #[derive(Copy, Clone)]
 pub struct Vec3(pub f64, pub f64, pub f64);
 
+impl ops::AddAssign for Vec3 {
+    fn add_assign(&mut self, other: Vec3) {
+        self.0 += other.0;
+        self.1 += other.1;
+        self.2 += other.2;
+    }
+}
+
 impl ops::Add for Vec3 {
     type Output = Self;
 

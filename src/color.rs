@@ -1,17 +1,28 @@
+use super::constants::*;
 use super::vec3::*;
-use std::fmt;
+use std::{fmt, ops};
 
 #[derive(Copy, Clone)]
 pub struct Color(pub Vec3);
 
+impl ops::AddAssign for Color {
+    fn add_assign(&mut self, other: Color) {
+        self.0 += other.0;
+    }
+}
+
 impl fmt::Display for Color {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let r = self.0 .0 * (1.0 / SAMPLES_PER_PIXEL as f64);
+        let g = self.0 .1 * (1.0 / SAMPLES_PER_PIXEL as f64);
+        let b = self.0 .2 * (1.0 / SAMPLES_PER_PIXEL as f64);
+
         write!(
             f,
             "{} {} {}",
-            (self.0 .0 * 255.999) as i32,
-            (self.0 .1 * 255.999) as i32,
-            (self.0 .2 * 255.999) as i32
+            (256.0 * num::clamp(r, 0.0, 0.999)) as i32,
+            (256.0 * num::clamp(g, 0.0, 0.999)) as i32,
+            (256.0 * num::clamp(b, 0.0, 0.999)) as i32,
         )
     }
 }
