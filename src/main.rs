@@ -47,11 +47,11 @@ fn main() {
     println!("{} {}", IMAGE_WIDTH, IMAGE_HEIGHT);
     println!("255");
 
-    for j in (0..IMAGE_HEIGHT).rev() {
-        eprintln!("Scanlines remaining: {}", j + 1);
+    for y in (0..IMAGE_HEIGHT).rev() {
+        eprintln!("Scanlines remaining: {}", y + 1);
 
-        for i in 0..IMAGE_WIDTH {
-            print_color(&pixel_color(i, j, &camera, &scene, &mut rng));
+        for x in 0..IMAGE_WIDTH {
+            print_color(&pixel_color(x, y, &camera, &scene, &mut rng));
         }
     }
 
@@ -59,22 +59,19 @@ fn main() {
 }
 
 fn pixel_color<R: Rng + ?Sized>(
-    i: usize,
-    j: usize,
+    x: usize,
+    y: usize,
     camera: &Camera,
     scene: &[Object],
     rng: &mut R,
 ) -> Vec3 {
-    let mut color = Vec3::ZERO;
-    for _ in 0..SAMPLES_PER_PIXEL {
-        let u = (i as f64 + rng.gen::<f64>()) / (IMAGE_WIDTH as f64 - 1.0);
-        let v = (j as f64 + rng.gen::<f64>()) / (IMAGE_HEIGHT as f64 - 1.0);
+    (0..SAMPLES_PER_PIXEL).fold(Vec3::ZERO, |acc, _| {
+        let u = (x as f64 + rng.gen::<f64>()) / (IMAGE_WIDTH as f64 - 1.0);
+        let v = (y as f64 + rng.gen::<f64>()) / (IMAGE_HEIGHT as f64 - 1.0);
         let ray = camera.get_ray(u, v, rng);
 
-        color += ray_color(&ray, &scene, MAX_DEPTH, rng);
-    }
-
-    color
+        acc + ray_color(&ray, &scene, MAX_DEPTH, rng)
+    }) / SAMPLES_PER_PIXEL as f64
 }
 
 fn ray_color<R: Rng + ?Sized>(ray: &Ray, scene: &[Object], depth: i32, rng: &mut R) -> Vec3 {
@@ -180,14 +177,10 @@ fn random_scene<R: Rng + ?Sized>(rng: &mut R) -> Vec<Object> {
 }
 
 fn print_color(v: &Vec3) {
-    let r = f64::sqrt(v.0 * (1.0 / SAMPLES_PER_PIXEL as f64));
-    let g = f64::sqrt(v.1 * (1.0 / SAMPLES_PER_PIXEL as f64));
-    let b = f64::sqrt(v.2 * (1.0 / SAMPLES_PER_PIXEL as f64));
-
     println!(
         "{} {} {}",
-        (256.0 * num::clamp(r, 0.0, 0.999)) as i32,
-        (256.0 * num::clamp(g, 0.0, 0.999)) as i32,
-        (256.0 * num::clamp(b, 0.0, 0.999)) as i32,
+        (256.0 * num::clamp(f64::sqrt(v.0), 0.0, 0.999)) as i32,
+        (256.0 * num::clamp(f64::sqrt(v.1), 0.0, 0.999)) as i32,
+        (256.0 * num::clamp(f64::sqrt(v.2), 0.0, 0.999)) as i32,
     )
 }
