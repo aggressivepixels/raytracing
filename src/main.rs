@@ -13,8 +13,8 @@ use ray::Ray;
 use vec3::Vec3;
 
 const ASPECT_RATIO: f64 = 16.0 / 9.0;
-const SAMPLES_PER_PIXEL: usize = 100;
-const IMAGE_WIDTH: usize = 200;
+const SAMPLES_PER_PIXEL: usize = 500;
+const IMAGE_WIDTH: usize = 2560;
 const IMAGE_HEIGHT: usize = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as usize;
 const MAX_DEPTH: i32 = 50;
 
@@ -33,7 +33,7 @@ fn main() {
     println!("255");
 
     for j in (0..IMAGE_HEIGHT).rev() {
-        eprintln!("Scanlines remaining: {}", j);
+        eprintln!("Scanlines remaining: {}", j + 1);
 
         for i in 0..IMAGE_WIDTH {
             let mut color = Vec3(0.0, 0.0, 0.0);
