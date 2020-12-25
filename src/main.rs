@@ -1,5 +1,4 @@
 mod camera;
-mod color;
 mod constants;
 mod material;
 mod object;
@@ -7,7 +6,6 @@ mod ray;
 mod vec3;
 
 use camera::*;
-use color::*;
 use constants::*;
 use material::*;
 use object::*;
@@ -38,7 +36,7 @@ fn main() {
         eprintln!("Scanlines remaining: {}", j);
 
         for i in 0..IMAGE_WIDTH {
-            let mut color = Color(Vec3(0.0, 0.0, 0.0));
+            let mut color = Vec3(0.0, 0.0, 0.0);
             for _ in 0..SAMPLES_PER_PIXEL {
                 let u = (i as f64 + random::<f64>()) / (IMAGE_WIDTH as f64 - 1.0);
                 let v = (j as f64 + random::<f64>()) / (IMAGE_HEIGHT as f64 - 1.0);
@@ -47,16 +45,16 @@ fn main() {
                 color += ray_color(&ray, &world, MAX_DEPTH);
             }
 
-            println!("{}", color);
+            print_color(&color);
         }
     }
 
     eprintln!("Done.");
 }
 
-fn ray_color(ray: &Ray, world: &World, depth: i32) -> Color {
+fn ray_color(ray: &Ray, world: &World, depth: i32) -> Vec3 {
     if depth < 1 {
-        return Color(Vec3(0.0, 0.0, 0.0));
+        return Vec3(0.0, 0.0, 0.0);
     }
 
     if let Some(hit) = world.hit(ray, 0.001, f64::INFINITY) {
@@ -64,13 +62,13 @@ fn ray_color(ray: &Ray, world: &World, depth: i32) -> Color {
             return attenuation * ray_color(&scattered, world, depth - 1);
         }
 
-        return Color(Vec3(0.0, 0.0, 0.0));
+        return Vec3(0.0, 0.0, 0.0);
     }
 
     let direction = ray.direction.normalize();
     let t = 0.5 * (direction.1 + 1.0);
 
-    Color((1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0))
+    (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0)
 }
 
 fn random_world() -> World {
@@ -80,7 +78,7 @@ fn random_world() -> World {
     objects.push(Object::Sphere {
         center: Vec3(0.0, -1000.0, 0.0),
         radius: 1000.0,
-        material: Material::Lambertian(Color(Vec3(0.5, 0.5, 0.5))),
+        material: Material::Lambertian(Vec3(0.5, 0.5, 0.5)),
     });
 
     for a in -11..11 {
@@ -94,20 +92,18 @@ fn random_world() -> World {
 
             if Vec3::length(center - Vec3(4.0, 0.2, 0.0)) > 0.9 {
                 if choose_mat < 0.8 {
-                    // diffuse
-                    let albedo = Color(
-                        Vec3(random::<f64>(), random::<f64>(), random::<f64>())
-                            * Vec3(random::<f64>(), random::<f64>(), random::<f64>()),
-                    );
+                    let albedo = Vec3(random::<f64>(), random::<f64>(), random::<f64>())
+                        * Vec3(random::<f64>(), random::<f64>(), random::<f64>());
+
                     objects.push(Object::Sphere {
                         center,
                         radius: 0.2,
                         material: Material::Lambertian(albedo),
                     });
                 } else if choose_mat < 0.95 {
-                    // metal
-                    let albedo = Color(Vec3::random_in_range(0.5, 1.0));
+                    let albedo = Vec3::random_in_range(0.5, 1.0);
                     let fuzz = rng.gen_range(0.0..0.5);
+
                     objects.push(Object::Sphere {
                         center,
                         radius: 0.2,
@@ -133,14 +129,27 @@ fn random_world() -> World {
     objects.push(Object::Sphere {
         center: Vec3(-4.0, 1.0, 0.0),
         radius: 1.0,
-        material: Material::Lambertian(Color(Vec3(0.4, 0.2, 0.1))),
+        material: Material::Lambertian(Vec3(0.4, 0.2, 0.1)),
     });
 
     objects.push(Object::Sphere {
         center: Vec3(4.0, 1.0, 0.0),
         radius: 1.0,
-        material: Material::Metal(Color(Vec3(0.7, 0.6, 0.5)), 0.0),
+        material: Material::Metal(Vec3(0.7, 0.6, 0.5), 0.0),
     });
 
     World(objects)
+}
+
+fn print_color(v: &Vec3) {
+    let r = f64::sqrt(v.0 * (1.0 / SAMPLES_PER_PIXEL as f64));
+    let g = f64::sqrt(v.1 * (1.0 / SAMPLES_PER_PIXEL as f64));
+    let b = f64::sqrt(v.2 * (1.0 / SAMPLES_PER_PIXEL as f64));
+
+    println!(
+        "{} {} {}",
+        (256.0 * num::clamp(r, 0.0, 0.999)) as i32,
+        (256.0 * num::clamp(g, 0.0, 0.999)) as i32,
+        (256.0 * num::clamp(b, 0.0, 0.999)) as i32,
+    )
 }

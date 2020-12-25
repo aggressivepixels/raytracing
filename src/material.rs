@@ -1,4 +1,3 @@
-use super::color::*;
 use super::object::*;
 use super::ray::*;
 use super::vec3::*;
@@ -6,13 +5,13 @@ use rand::prelude::*;
 
 #[derive(Copy, Clone)]
 pub enum Material {
-    Lambertian(Color),
-    Metal(Color, f64),
+    Lambertian(Vec3),
+    Metal(Vec3, f64),
     Dielectric(f64),
 }
 
 impl Material {
-    pub fn scatter(self, ray: &Ray, hit: &Hit) -> Option<(Color, Ray)> {
+    pub fn scatter(self, ray: &Ray, hit: &Hit) -> Option<(Vec3, Ray)> {
         match self {
             Material::Lambertian(albedo) => {
                 let direction = hit.normal + Vec3::random_in_unit_sphere().normalize();
@@ -64,7 +63,7 @@ impl Material {
                 };
 
                 Some((
-                    Color(Vec3(1.0, 1.0, 1.0)),
+                    Vec3(1.0, 1.0, 1.0),
                     Ray {
                         origin: hit.point,
                         direction,
