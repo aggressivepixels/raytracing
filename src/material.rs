@@ -1,7 +1,7 @@
-use super::object::*;
-use super::ray::*;
-use super::vec3::*;
-use rand::prelude::*;
+use super::object::Hit;
+use super::ray::Ray;
+use super::vec3::Vec3;
+use rand::Rng;
 
 #[derive(Copy, Clone)]
 pub enum Material {
@@ -11,10 +11,15 @@ pub enum Material {
 }
 
 impl Material {
-    pub fn scatter(&self, ray: &Ray, hit: &Hit) -> Option<(Vec3, Ray)> {
+    pub fn scatter<R: Rng + ?Sized>(
+        &self,
+        ray: &Ray,
+        hit: &Hit,
+        rng: &mut R,
+    ) -> Option<(Vec3, Ray)> {
         match *self {
             Material::Lambertian(albedo) => {
-                let direction = hit.normal + Vec3::random_in_unit_sphere().normalize();
+                let direction = hit.normal + Vec3::random_in_unit_sphere(rng).normalize();
 
                 Some((
                     albedo,
@@ -31,7 +36,7 @@ impl Material {
 
             Material::Metal(albedo, fuzz) => {
                 let reflected = ray.direction.normalize().reflect(hit.normal)
-                    + fuzz * Vec3::random_in_unit_sphere();
+                    + fuzz * Vec3::random_in_unit_sphere(rng);
 
                 if reflected.dot(hit.normal) > 0.0 {
                     Some((
@@ -55,7 +60,7 @@ impl Material {
                 let cannot_refract = refraction_ratio * sin_theta > 1.0;
 
                 let direction = if cannot_refract
-                    || reflectance(cos_theta, refraction_ratio) > random::<f64>()
+                    || reflectance(cos_theta, refraction_ratio) > rng.gen::<f64>()
                 {
                     unit_direction.reflect(hit.normal)
                 } else {

@@ -4,26 +4,29 @@ mod object;
 mod ray;
 mod vec3;
 
-use camera::*;
-use material::*;
-use object::*;
-use rand::prelude::*;
-use ray::*;
-use vec3::*;
+use camera::Camera;
+use material::Material::{Dielectric, Lambertian, Metal};
+use object::Hit;
+use object::Object::{self, Sphere};
+use rand::Rng;
+use ray::Ray;
+use vec3::Vec3;
 
 const ASPECT_RATIO: f64 = 16.0 / 9.0;
-const SAMPLES_PER_PIXEL: usize = 100;
+const SAMPLES_PER_PIXEL: usize = 512;
 const IMAGE_WIDTH: usize = 200;
 const IMAGE_HEIGHT: usize = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as usize;
 const MAX_DEPTH: i32 = 50;
 
 fn main() {
+    let mut rng = rand::thread_rng();
+
     let look_from = Vec3(13.0, 2.0, 3.0);
     let look_at = Vec3(0.0, 0.0, 0.0);
     let vup = Vec3(0.0, 1.0, 0.0);
 
     let camera = Camera::new(look_from, look_at, vup, 20.0, ASPECT_RATIO, 0.1, 10.0);
-    let scene = random_scene();
+    let scene = random_scene(&mut rng);
 
     println!("P3");
     println!("{} {}", IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -35,11 +38,11 @@ fn main() {
         for i in 0..IMAGE_WIDTH {
             let mut color = Vec3(0.0, 0.0, 0.0);
             for _ in 0..SAMPLES_PER_PIXEL {
-                let u = (i as f64 + random::<f64>()) / (IMAGE_WIDTH as f64 - 1.0);
-                let v = (j as f64 + random::<f64>()) / (IMAGE_HEIGHT as f64 - 1.0);
-                let ray = camera.get_ray(u, v);
+                let u = (i as f64 + rng.gen::<f64>()) / (IMAGE_WIDTH as f64 - 1.0);
+                let v = (j as f64 + rng.gen::<f64>()) / (IMAGE_HEIGHT as f64 - 1.0);
+                let ray = camera.get_ray(u, v, &mut rng);
 
-                color += ray_color(&ray, &scene, MAX_DEPTH);
+                color += ray_color(&ray, &scene, MAX_DEPTH, &mut rng);
             }
 
             print_color(&color);
@@ -49,14 +52,14 @@ fn main() {
     eprintln!("Done.");
 }
 
-fn ray_color(ray: &Ray, scene: &[Object], depth: i32) -> Vec3 {
+fn ray_color<R: Rng + ?Sized>(ray: &Ray, scene: &[Object], depth: i32, rng: &mut R) -> Vec3 {
     if depth < 1 {
         return Vec3(0.0, 0.0, 0.0);
     }
 
     if let Some(hit) = hit_scene(scene, ray, 0.001, f64::INFINITY) {
-        if let Some((attenuation, scattered)) = hit.material.scatter(ray, &hit) {
-            return attenuation * ray_color(&scattered, scene, depth - 1);
+        if let Some((attenuation, scattered)) = hit.material.scatter(ray, &hit, rng) {
+            return attenuation * ray_color(&scattered, scene, depth - 1, rng);
         }
 
         return Vec3(0.0, 0.0, 0.0);
@@ -82,71 +85,70 @@ pub fn hit_scene(scene: &[Object], ray: &Ray, t_min: f64, t_max: f64) -> Option<
     hit
 }
 
-fn random_scene() -> Vec<Object> {
-    let mut rng = rand::thread_rng();
+fn random_scene<R: Rng + ?Sized>(rng: &mut R) -> Vec<Object> {
     let mut objects = vec![];
 
-    objects.push(Object::Sphere {
+    objects.push(Sphere {
         center: Vec3(0.0, -1000.0, 0.0),
         radius: 1000.0,
-        material: Material::Lambertian(Vec3(0.5, 0.5, 0.5)),
+        material: Lambertian(Vec3(0.5, 0.5, 0.5)),
     });
 
     for a in -11..11 {
         for b in -11..11 {
-            let choose_mat = random::<f64>();
+            let choose_mat = rng.gen::<f64>();
             let center = Vec3(
-                a as f64 + 0.9 * random::<f64>(),
+                a as f64 + 0.9 * rng.gen::<f64>(),
                 0.2,
-                b as f64 + 0.9 * random::<f64>(),
+                b as f64 + 0.9 * rng.gen::<f64>(),
             );
 
-            if Vec3::length(center - Vec3(4.0, 0.2, 0.0)) > 0.9 {
+            if Vec3::length(&(center - Vec3(4.0, 0.2, 0.0))) > 0.9 {
                 if choose_mat < 0.8 {
-                    let albedo = Vec3(random::<f64>(), random::<f64>(), random::<f64>())
-                        * Vec3(random::<f64>(), random::<f64>(), random::<f64>());
+                    let albedo = Vec3(rng.gen::<f64>(), rng.gen::<f64>(), rng.gen::<f64>())
+                        * Vec3(rng.gen::<f64>(), rng.gen::<f64>(), rng.gen::<f64>());
 
-                    objects.push(Object::Sphere {
+                    objects.push(Sphere {
                         center,
                         radius: 0.2,
-                        material: Material::Lambertian(albedo),
+                        material: Lambertian(albedo),
                     });
                 } else if choose_mat < 0.95 {
-                    let albedo = Vec3::random_in_range(0.5, 1.0);
+                    let albedo = Vec3::random_in_range(0.5, 1.0, rng);
                     let fuzz = rng.gen_range(0.0..0.5);
 
-                    objects.push(Object::Sphere {
+                    objects.push(Sphere {
                         center,
                         radius: 0.2,
-                        material: Material::Metal(albedo, fuzz),
+                        material: Metal(albedo, fuzz),
                     });
                 } else {
-                    objects.push(Object::Sphere {
+                    objects.push(Sphere {
                         center,
                         radius: 0.2,
-                        material: Material::Dielectric(1.5),
+                        material: Dielectric(1.5),
                     });
                 }
             }
         }
     }
 
-    objects.push(Object::Sphere {
+    objects.push(Sphere {
         center: Vec3(0.0, 1.0, 0.0),
         radius: 1.0,
-        material: Material::Dielectric(1.5),
+        material: Dielectric(1.5),
     });
 
-    objects.push(Object::Sphere {
+    objects.push(Sphere {
         center: Vec3(-4.0, 1.0, 0.0),
         radius: 1.0,
-        material: Material::Lambertian(Vec3(0.4, 0.2, 0.1)),
+        material: Lambertian(Vec3(0.4, 0.2, 0.1)),
     });
 
-    objects.push(Object::Sphere {
+    objects.push(Sphere {
         center: Vec3(4.0, 1.0, 0.0),
         radius: 1.0,
-        material: Material::Metal(Vec3(0.7, 0.6, 0.5), 0.0),
+        material: Metal(Vec3(0.7, 0.6, 0.5), 0.0),
     });
 
     objects

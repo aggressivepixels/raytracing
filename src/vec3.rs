@@ -1,4 +1,4 @@
-use rand::prelude::*;
+use rand::Rng;
 use std::ops;
 
 #[derive(Copy, Clone)]
@@ -73,11 +73,11 @@ impl Vec3 {
         self / self.length()
     }
 
-    pub fn length(self) -> f64 {
+    pub fn length(&self) -> f64 {
         self.squared_length().sqrt()
     }
 
-    pub fn squared_length(self) -> f64 {
+    pub fn squared_length(&self) -> f64 {
         self.0.powi(2) + self.1.powi(2) + self.2.powi(2)
     }
 
@@ -85,7 +85,7 @@ impl Vec3 {
         self.0 * other.0 + self.1 * other.1 + self.2 * other.2
     }
 
-    pub fn is_near_zero(self) -> bool {
+    pub fn is_near_zero(&self) -> bool {
         const DELTA: f64 = 0.00000001;
         return self.0.abs() < DELTA && self.1.abs() < DELTA && self.2.abs() < DELTA;
     }
@@ -94,13 +94,11 @@ impl Vec3 {
         self - 2.0 * self.dot(n) * n
     }
 
-    pub fn random() -> Self {
-        Vec3(random(), random(), random())
+    pub fn random<R: Rng + ?Sized>(rng: &mut R) -> Self {
+        Vec3(rng.gen::<f64>(), rng.gen::<f64>(), rng.gen::<f64>())
     }
 
-    pub fn random_in_range(from: f64, to: f64) -> Self {
-        let mut rng = rand::thread_rng();
-
+    pub fn random_in_range<R: Rng + ?Sized>(from: f64, to: f64, rng: &mut R) -> Self {
         Vec3(
             rng.gen_range(from..to),
             rng.gen_range(from..to),
@@ -108,18 +106,16 @@ impl Vec3 {
         )
     }
 
-    pub fn random_in_unit_sphere() -> Self {
+    pub fn random_in_unit_sphere<R: Rng + ?Sized>(rng: &mut R) -> Self {
         loop {
-            let v = Self::random_in_range(-1.0, 1.0);
+            let v = Self::random_in_range(-1.0, 1.0, rng);
             if v.squared_length() < 1.0 {
                 return v;
             }
         }
     }
 
-    pub fn random_in_unit_disk() -> Self {
-        let mut rng = rand::thread_rng();
-
+    pub fn random_in_unit_disk<R: Rng + ?Sized>(rng: &mut R) -> Self {
         loop {
             let p = Vec3(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 0.0);
             if p.squared_length() < 1.0 {

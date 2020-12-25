@@ -1,6 +1,6 @@
-use super::material::*;
-use super::ray::*;
-use super::vec3::*;
+use super::material::Material;
+use super::ray::Ray;
+use super::vec3::Vec3;
 
 #[derive(Clone, Copy)]
 pub struct Hit {
