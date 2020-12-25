@@ -31,7 +31,6 @@ const BACKGROUND_GRADIENT_END: Vec3 = Vec3(1.0, 1.0, 1.0);
 
 fn main() {
     let mut rng = rand_xoshiro::Xoshiro256Plus::seed_from_u64(0);
-
     let camera = Camera::new(
         LOOKFROM,
         LOOKAT,
@@ -41,6 +40,7 @@ fn main() {
         APERTURE,
         FOCUS_DIST,
     );
+
     let scene = random_scene(&mut rng);
 
     println!("P3");
@@ -51,20 +51,30 @@ fn main() {
         eprintln!("Scanlines remaining: {}", j + 1);
 
         for i in 0..IMAGE_WIDTH {
-            let mut color = Vec3::ZERO;
-            for _ in 0..SAMPLES_PER_PIXEL {
-                let u = (i as f64 + rng.gen::<f64>()) / (IMAGE_WIDTH as f64 - 1.0);
-                let v = (j as f64 + rng.gen::<f64>()) / (IMAGE_HEIGHT as f64 - 1.0);
-                let ray = camera.get_ray(u, v, &mut rng);
-
-                color += ray_color(&ray, &scene, MAX_DEPTH, &mut rng);
-            }
-
-            print_color(&color);
+            print_color(&pixel_color(i, j, &camera, &scene, &mut rng));
         }
     }
 
     eprintln!("Done.");
+}
+
+fn pixel_color<R: Rng + ?Sized>(
+    i: usize,
+    j: usize,
+    camera: &Camera,
+    scene: &[Object],
+    rng: &mut R,
+) -> Vec3 {
+    let mut color = Vec3::ZERO;
+    for _ in 0..SAMPLES_PER_PIXEL {
+        let u = (i as f64 + rng.gen::<f64>()) / (IMAGE_WIDTH as f64 - 1.0);
+        let v = (j as f64 + rng.gen::<f64>()) / (IMAGE_HEIGHT as f64 - 1.0);
+        let ray = camera.get_ray(u, v, rng);
+
+        color += ray_color(&ray, &scene, MAX_DEPTH, rng);
+    }
+
+    color
 }
 
 fn ray_color<R: Rng + ?Sized>(ray: &Ray, scene: &[Object], depth: i32, rng: &mut R) -> Vec3 {
