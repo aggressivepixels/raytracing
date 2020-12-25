@@ -14,24 +14,24 @@ pub struct Camera {
 
 impl Camera {
     pub fn new(
-        look_from: Vec3,
-        look_at: Vec3,
+        lookfrom: Vec3,
+        lookat: Vec3,
         vup: Vec3,
-        vertical_fov: f64,
+        vfov: f64,
         aspect_ratio: f64,
         aperture: f64,
         focus_dist: f64,
     ) -> Self {
-        let theta = vertical_fov.to_radians();
+        let theta = vfov.to_radians();
         let h = f64::tan(theta / 2.0);
         let viewport_height = 2.0 * h;
         let viewport_width = aspect_ratio * viewport_height;
 
-        let w = Vec3::normalize(look_from - look_at);
+        let w = Vec3::normalize(lookfrom - lookat);
         let u = vup.cross(w).normalize();
         let v = w.cross(u);
 
-        let origin = look_from;
+        let origin = lookfrom;
         let horizontal = focus_dist * viewport_width * u;
         let vertical = focus_dist * viewport_height * v;
         let lower_left = origin - horizontal / 2.0 - vertical / 2.0 - focus_dist * w;

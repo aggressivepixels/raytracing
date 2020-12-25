@@ -13,19 +13,34 @@ use ray::Ray;
 use vec3::Vec3;
 
 const ASPECT_RATIO: f64 = 16.0 / 9.0;
-const SAMPLES_PER_PIXEL: usize = 500;
 const IMAGE_WIDTH: usize = 2560;
 const IMAGE_HEIGHT: usize = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as usize;
+
+const SAMPLES_PER_PIXEL: usize = 500;
 const MAX_DEPTH: i32 = 50;
+
+const LOOKFROM: Vec3 = Vec3(13.0, 2.0, 3.0);
+const LOOKAT: Vec3 = Vec3(0.0, 0.0, 0.0);
+const VUP: Vec3 = Vec3(0.0, 1.0, 0.0);
+const VFOV: f64 = 20.0;
+const APERTURE: f64 = 0.1;
+const FOCUS_DIST: f64 = 10.0;
+
+const BACKGROUND_GRADIENT_START: Vec3 = Vec3(0.5, 0.7, 1.0);
+const BACKGROUND_GRADIENT_END: Vec3 = Vec3(1.0, 1.0, 1.0);
 
 fn main() {
     let mut rng = rand_xoshiro::Xoshiro256Plus::seed_from_u64(0);
 
-    let look_from = Vec3(13.0, 2.0, 3.0);
-    let look_at = Vec3(0.0, 0.0, 0.0);
-    let vup = Vec3(0.0, 1.0, 0.0);
-
-    let camera = Camera::new(look_from, look_at, vup, 20.0, ASPECT_RATIO, 0.1, 10.0);
+    let camera = Camera::new(
+        LOOKFROM,
+        LOOKAT,
+        VUP,
+        VFOV,
+        ASPECT_RATIO,
+        APERTURE,
+        FOCUS_DIST,
+    );
     let scene = random_scene(&mut rng);
 
     println!("P3");
@@ -36,7 +51,7 @@ fn main() {
         eprintln!("Scanlines remaining: {}", j + 1);
 
         for i in 0..IMAGE_WIDTH {
-            let mut color = Vec3(0.0, 0.0, 0.0);
+            let mut color = Vec3::ZERO;
             for _ in 0..SAMPLES_PER_PIXEL {
                 let u = (i as f64 + rng.gen::<f64>()) / (IMAGE_WIDTH as f64 - 1.0);
                 let v = (j as f64 + rng.gen::<f64>()) / (IMAGE_HEIGHT as f64 - 1.0);
@@ -54,7 +69,7 @@ fn main() {
 
 fn ray_color<R: Rng + ?Sized>(ray: &Ray, scene: &[Object], depth: i32, rng: &mut R) -> Vec3 {
     if depth < 1 {
-        return Vec3(0.0, 0.0, 0.0);
+        return Vec3::ZERO;
     }
 
     if let Some(hit) = hit_scene(scene, ray, 0.001, f64::INFINITY) {
@@ -62,13 +77,13 @@ fn ray_color<R: Rng + ?Sized>(ray: &Ray, scene: &[Object], depth: i32, rng: &mut
             return attenuation * ray_color(&scattered, scene, depth - 1, rng);
         }
 
-        return Vec3(0.0, 0.0, 0.0);
+        return Vec3::ZERO;
     }
 
     let direction = ray.direction.normalize();
     let t = 0.5 * (direction.1 + 1.0);
 
-    (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0)
+    (1.0 - t) * BACKGROUND_GRADIENT_END + t * BACKGROUND_GRADIENT_START
 }
 
 pub fn hit_scene(scene: &[Object], ray: &Ray, t_min: f64, t_max: f64) -> Option<Hit> {

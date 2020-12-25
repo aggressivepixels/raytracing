@@ -69,6 +69,8 @@ impl ops::Neg for Vec3 {
 }
 
 impl Vec3 {
+    pub const ZERO: Vec3 = Vec3(0.0, 0.0, 0.0);
+
     pub fn normalize(self) -> Self {
         self / self.length()
     }
