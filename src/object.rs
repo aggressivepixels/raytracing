@@ -21,8 +21,8 @@ pub enum Object {
 }
 
 impl Object {
-    pub fn hit(self, ray: &Ray, t_min: f64, t_max: f64) -> Option<Hit> {
-        match self {
+    pub fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<Hit> {
+        match *self {
             Object::Sphere {
                 center,
                 radius,
@@ -65,23 +65,5 @@ impl Object {
                 })
             }
         }
-    }
-}
-
-pub struct World(pub Vec<Object>);
-
-impl World {
-    pub fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<Hit> {
-        let mut closest_so_far = t_max;
-        let mut hit: Option<Hit> = None;
-
-        for obj in &self.0 {
-            if let Some(new_hit) = obj.hit(ray, t_min, closest_so_far) {
-                closest_so_far = new_hit.t;
-                hit = Some(new_hit);
-            }
-        }
-
-        hit
     }
 }

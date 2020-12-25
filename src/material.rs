@@ -11,8 +11,8 @@ pub enum Material {
 }
 
 impl Material {
-    pub fn scatter(self, ray: &Ray, hit: &Hit) -> Option<(Vec3, Ray)> {
-        match self {
+    pub fn scatter(&self, ray: &Ray, hit: &Hit) -> Option<(Vec3, Ray)> {
+        match *self {
             Material::Lambertian(albedo) => {
                 let direction = hit.normal + Vec3::random_in_unit_sphere().normalize();
 

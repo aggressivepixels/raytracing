@@ -26,7 +26,7 @@ fn main() {
         10.0,
     );
 
-    let world = random_world();
+    let scene = random_scene();
 
     println!("P3");
     println!("{} {}", IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -42,7 +42,7 @@ fn main() {
                 let v = (j as f64 + random::<f64>()) / (IMAGE_HEIGHT as f64 - 1.0);
                 let ray = camera.get_ray(u, v);
 
-                color += ray_color(&ray, &world, MAX_DEPTH);
+                color += ray_color(&ray, &scene, MAX_DEPTH);
             }
 
             print_color(&color);
@@ -52,14 +52,14 @@ fn main() {
     eprintln!("Done.");
 }
 
-fn ray_color(ray: &Ray, world: &World, depth: i32) -> Vec3 {
+fn ray_color(ray: &Ray, scene: &[Object], depth: i32) -> Vec3 {
     if depth < 1 {
         return Vec3(0.0, 0.0, 0.0);
     }
 
-    if let Some(hit) = world.hit(ray, 0.001, f64::INFINITY) {
+    if let Some(hit) = hit_scene(scene, ray, 0.001, f64::INFINITY) {
         if let Some((attenuation, scattered)) = hit.material.scatter(ray, &hit) {
-            return attenuation * ray_color(&scattered, world, depth - 1);
+            return attenuation * ray_color(&scattered, scene, depth - 1);
         }
 
         return Vec3(0.0, 0.0, 0.0);
@@ -71,7 +71,21 @@ fn ray_color(ray: &Ray, world: &World, depth: i32) -> Vec3 {
     (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0)
 }
 
-fn random_world() -> World {
+pub fn hit_scene(scene: &[Object], ray: &Ray, t_min: f64, t_max: f64) -> Option<Hit> {
+    let mut closest_so_far = t_max;
+    let mut hit: Option<Hit> = None;
+
+    for &obj in scene {
+        if let Some(new_hit) = obj.hit(ray, t_min, closest_so_far) {
+            closest_so_far = new_hit.t;
+            hit = Some(new_hit);
+        }
+    }
+
+    hit
+}
+
+fn random_scene() -> Vec<Object> {
     let mut rng = rand::thread_rng();
     let mut objects = vec![];
 
@@ -138,7 +152,7 @@ fn random_world() -> World {
         material: Material::Metal(Vec3(0.7, 0.6, 0.5), 0.0),
     });
 
-    World(objects)
+    objects
 }
 
 fn print_color(v: &Vec3) {
