@@ -8,18 +8,18 @@ use camera::Camera;
 use material::Material::{Dielectric, Lambertian, Metal};
 use object::Hit;
 use object::Object::{self, Sphere};
-use rand::Rng;
+use rand::{Rng, SeedableRng};
 use ray::Ray;
 use vec3::Vec3;
 
 const ASPECT_RATIO: f64 = 16.0 / 9.0;
-const SAMPLES_PER_PIXEL: usize = 512;
+const SAMPLES_PER_PIXEL: usize = 100;
 const IMAGE_WIDTH: usize = 200;
 const IMAGE_HEIGHT: usize = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as usize;
 const MAX_DEPTH: i32 = 50;
 
 fn main() {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand_xoshiro::Xoshiro256Plus::seed_from_u64(0);
 
     let look_from = Vec3(13.0, 2.0, 3.0);
     let look_at = Vec3(0.0, 0.0, 0.0);
